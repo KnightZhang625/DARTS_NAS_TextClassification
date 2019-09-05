@@ -6,6 +6,7 @@ import torch
 # import torchvision.datasets as dset
 import numpy as np
 import preproc
+import load_data
 
 
 def get_data(dataset, data_path, cutout_length, validation):
@@ -48,6 +49,7 @@ def get_data(dataset, data_path, cutout_length, validation):
         
     #     def __len__(self):
     #         return len(self.data)
+
 
     train_data = np.random.randn(10, 1, 12, 128)
     train_labels = np.random.randint(5, size=10)

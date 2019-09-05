@@ -9,7 +9,15 @@ import utils
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
+import load_data
 
+from pathlib import Path
+
+cur_path = Path(__file__).absolute().parent
+train_data_path = cur_path / 'data/test_data/train_eval.datas'
+train_label_path = cur_path / 'data/test_data/train_eval.labels'
+test_data_path = cur_path / 'data/test_data/test_eval.datas'
+test_label_path = cur_path / 'data/test_data/test_eval.labels'
 
 config = SearchConfig()
 
@@ -37,8 +45,10 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     # get data with meta info
-    input_size, input_channels, n_classes, train_data = utils.get_data(
-        config.dataset, config.data_path, cutout_length=0, validation=False)
+    input_channels = 1
+    n_classes = 27
+    # input_size, input_channels, n_classes, train_data = utils.get_data(
+    #     config.dataset, config.data_path, cutout_length=0, validation=False)
 
     net_crit = nn.CrossEntropyLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
@@ -53,9 +63,9 @@ def main():
                                    weight_decay=config.alpha_weight_decay)
 
     # split data to train/validation
-    n_train = len(train_data[0])
-    split = n_train // 2
-    indices = list(range(n_train))
+    # n_train = len(train_data[0])
+    # split = n_train // 2
+    # indices = list(range(n_train))
     # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
     # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
     # train_loader = torch.utils.data.DataLoader(train_data,
@@ -79,13 +89,15 @@ def main():
         lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
-
+        
+        train_data = load_data.Data(data_path=train_data_path, label_path=train_label_path)
         # training
-        train(train_data, train_data, model, architect, w_optim, alpha_optim, lr, epoch)
+        train(train_data, model, architect, w_optim, alpha_optim, lr, epoch)
 
         # validation
-        cur_step = (epoch+1) * len(train_data[0])
-        top1 = validate(train_data, model, epoch, cur_step)
+        cur_step = (epoch+1) * len(train_data)
+        test_data = load_data.Data(data_path=test_data_path, label_path=test_label_path)
+        top1 = validate(test_data, model, epoch, cur_step)
 
         # log
         # genotype
@@ -112,7 +124,7 @@ def main():
     logger.info("Best Genotype = {}".format(best_genotype))
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch):
+def train(train_loader, model, architect, w_optim, alpha_optim, lr, epoch):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -123,12 +135,13 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
     step = 0
     
-    for i in range (7):
-        trn_X = torch.tensor(train_loader[0][i:i+2,:], dtype=torch.float32)
-        trn_y = torch.tensor(train_loader[1][i:i+2], dtype=torch.long)
-
-        val_X = trn_X
-        val_y = trn_y
+    for (X, y) in train_loader.get(5):
+        print('Reading data...')
+        trn_X = torch.tensor(X[0: 3, :], dtype=torch.float32)
+        trn_y = torch.tensor(y[0 : 3], dtype=torch.long)
+        val_X = torch.tensor(X[3 : , :], dtype=torch.float32)
+        val_y = torch.tensor(y[3 : ], dtype=torch.long)
+   
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
@@ -176,10 +189,11 @@ def validate(valid_loader, model, epoch, cur_step):
 
     with torch.no_grad():
         step = 0
-        for i in range (7):
-            X = torch.tensor(valid_loader[0][i:i+2,:], dtype=torch.float32)
-            y = torch.tensor(valid_loader[1][i:i+2], dtype=torch.long)
-           
+        for (X, y) in valid_loader.get(5):
+            print('Reading test data...')
+            X = torch.tensor(X[0: 3, :], dtype=torch.float32)
+            y = torch.tensor(y[0 : 3], dtype=torch.long)
+   
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             N = X.size(0)
 
