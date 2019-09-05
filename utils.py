@@ -49,13 +49,13 @@ def get_data(dataset, data_path, cutout_length, validation):
     #     def __len__(self):
     #         return len(self.data)
 
-    train_data = np.random.randn(10, 3, 32, 32)
-    train_labels = np.random.randn(10)
+    train_data = np.random.randn(10, 1, 12, 128)
+    train_labels = np.random.randint(5, size=10)
 
     trn_data = (train_data, train_labels)
 
-    input_size = 32
-    input_channels = 3
+    input_size = None   # useless
+    input_channels = 1
     n_classes = 5
 
     ret = [input_size, input_channels, n_classes, trn_data]

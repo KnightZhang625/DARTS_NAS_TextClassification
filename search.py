@@ -126,6 +126,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     for i in range (7):
         trn_X = torch.tensor(train_loader[0][i:i+2,:], dtype=torch.float32)
         trn_y = torch.tensor(train_loader[1][i:i+2], dtype=torch.long)
+
         val_X = trn_X
         val_y = trn_y
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
