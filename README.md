@@ -20,6 +20,7 @@ Adjust the batch size if out of memory (OOM) occurs. It dependes on your gpu mem
 ```shell
 python search.py --name cifar10 --dataset cifar10
 ```
+    - --name, --dataset has no use now, just add them anyway
 
 - Augment
 
@@ -76,18 +77,6 @@ Note that although the [linear scaling rule](https://arxiv.org/pdf/1706.02677) p
 
 Furthermore, we do not know about the scalability of DARTS, where larger batch size could be more harmful.
 So, please pay attention to the hyperparameters when using multi-gpu.
-
-## Results
-
-The following results were obtained using the default arguments, except for the epochs. `--epochs 300` was used in MNIST and Fashion-MNIST.
-
-| Dataset | Final validation acc | Best validation acc |
-| ------- | -------------------- | ------------------- |
-| MNIST         | 99.75% | 99.81% |
-| Fashion-MNIST | 99.27% | 99.39% |
-| CIFAR-10       | 97.17% | 97.23% |
-
-97.17%, final validation accuracy in CIFAR-10, is the same number as the paper.
 
 ### Found architectures
 
@@ -161,7 +150,7 @@ https://github.com/quark0/darts (official implementation)
 - Code that is easy to read and commented.
 - Implemenation of architect
     - Original implementation is very slow in pytorch >= 0.4.
-- Tested on FashionMNIST / MNIST
+- Tested on CNN Text Classification
 - Tensorboard
 - No RNN
 
